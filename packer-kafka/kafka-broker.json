@@ -1,0 +1,65 @@
+{
+  "_copyright": "2020, Dominik Fries",
+  "_author": "Dominik Fries <http://github.com/fscm>",
+  "_license": "SPDX-License-Identifier: MIT",
+  "variables": {
+    "aws_access_key": "{{env `aws_access_key`}}",
+    "aws_ami_name": "kafka-broker",
+    "aws_ami_name_prefix": "",
+    "aws_instance_type": "t2.medium",
+    "aws_region": "{{env `aws_region`}}",
+    "aws_secret_key": "{{env `aws_secret_key`}}",
+    "aws_ssh_username": "ec2-user",
+    "java_build_number": "12",
+    "java_major_version": "8",
+    "confluent_version": "{{env `confluent_version`}}",
+    "os_short_arch": "x64",
+    "system_locale": "en_US"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "{{user `aws_ssh_username`}}",
+      "ssh_interface": "public_ip",
+      "ssh_keypair_name": "tf-kafka",
+      "ssh_private_key_file": "~/.ssh/tf-kafka.pem",
+      "associate_public_ip_address": true,
+      "ami_name": "{{user `aws_ami_name_prefix`}}{{user `aws_ami_name`}}-{{user `kafka_version`}}-({{isotime \"20060102150405\"}})",
+      "source_ami_filter": {
+        "filters": {
+          "architecture": "x86_64",
+          "name": "RHEL-7.5_HVM_GA*",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "owners": [
+          "309956199498"
+        ],
+        "most_recent": true
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "files/kafka-broker/",
+      "destination": "/tmp"
+    },
+    {
+      "type": "shell",
+      "inline_shebang": "/bin/bash -e",
+      "environment_vars": [],
+      "inline": [
+        "echo === Install System Packages ===",
+        "sudo yum -y install curl which",
+        "sudo rpm --import https://packages.confluent.io/rpm/6.0/archive.key",
+        "sudo cp /tmp/confluent.repo /etc/yum.repos.d/confluent.repo",
+        "sudo yum clean all && sudo yum install confluent-platform"
+      ]
+    }
+  ]
+}

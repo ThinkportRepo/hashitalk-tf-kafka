@@ -1,0 +1,15 @@
+locale: en_US.UTF-8
+manage_etc_hosts: false
+preserve_hostname: true
+timezone: UTC
+
+package_update: true
+package_upgrade: true
+packages:
+  - bash-completion
+  - git
+  - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+output: {all: ">>/var/log/cloud-init-output.log"}
+
+final_message: "System Boot (via CloudInit) is complete after $UPTIME seconds. Finished at $TIMESTAMP"
